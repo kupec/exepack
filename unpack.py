@@ -78,7 +78,7 @@ def unpack_relocation_table(table, header):
             addr_offset = unpack_word(table, index)
             index += 2
             pack_word(header, header_offset, addr_offset)
-            pack_word(header, header_offset + 2, seg)
+            pack_word(header, header_offset + 2, seg << 12)
             header_offset += 4
         reloc_count += count
 
