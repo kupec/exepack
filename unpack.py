@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import sys
 from struct import unpack_from, pack_into
+from math import ceil
 
 
 MZ_RELOCATION_COUNT = 0x06
 MZ_HEADER_SIZE = 0x08
+MZ_PAGE_COUNT = 0x04
+MZ_PAGE_LAST = 0x02
 MZ_SS = 0x0E
 MZ_SP = 0x10
 MZ_IP = 0x14
@@ -101,6 +104,12 @@ def unpack(input_image):
     packed_body = input_image[header_size:exepack_unpacker_offset]
     unpacked_body = unpack_body(packed_body)
 
+    size = len(header) + len(unpacked_body)
+    page_count = int(ceil(size / 0x200))
+    page_last = size % 0x200
+
+    pack_word(header, MZ_PAGE_COUNT, page_count)
+    pack_word(header, MZ_PAGE_LAST, page_last)
     pack_word(header, MZ_CS, unpack_word(exepack_header, EXEPACK_CS))
     pack_word(header, MZ_IP, unpack_word(exepack_header, EXEPACK_IP))
     pack_word(header, MZ_SS, unpack_word(exepack_header, EXEPACK_SS))
