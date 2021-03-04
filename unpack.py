@@ -8,6 +8,8 @@ MZ_RELOCATION_COUNT = 0x06
 MZ_HEADER_SIZE = 0x08
 MZ_PAGE_COUNT = 0x04
 MZ_PAGE_LAST = 0x02
+MZ_MIN_MEM = 0x0A
+MZ_MAX_MEM = 0x0C
 MZ_SS = 0x0E
 MZ_SP = 0x10
 MZ_IP = 0x14
@@ -46,17 +48,19 @@ def unpack_body(packed_body):
         code = remain_bytes[-1]
         is_end = code & 1
         operation = code & 0xFE
-        print('code', operation)
+        print('code', f'{code:x}')
 
         if operation == 0xB0:
             count = unpack_word(remain_bytes, -3)
             fill_byte = remain_bytes[-4]
             chunk = bytes([fill_byte] * count)
             remain_bytes = remain_bytes[0:-4]
+            print(f'fill_byte = {fill_byte:x}, count = {count}')
         elif operation == 0xB2:
             count = unpack_word(remain_bytes, -3)
             chunk = remain_bytes[-3-count:-3]
             remain_bytes = remain_bytes[0:-3-count]
+            print(f'count = {count}')
         else:
             raise ValueError(f'File is corrupted. We expect 0xB0 or 0xB2 codes but found byte={code}')
 
@@ -110,6 +114,8 @@ def unpack(input_image):
 
     pack_word(header, MZ_PAGE_COUNT, page_count)
     pack_word(header, MZ_PAGE_LAST, page_last)
+    pack_word(header, MZ_MIN_MEM, 0)
+    pack_word(header, MZ_MAX_MEM, 0xFFFF)
     pack_word(header, MZ_CS, unpack_word(exepack_header, EXEPACK_CS))
     pack_word(header, MZ_IP, unpack_word(exepack_header, EXEPACK_IP))
     pack_word(header, MZ_SS, unpack_word(exepack_header, EXEPACK_SS))
